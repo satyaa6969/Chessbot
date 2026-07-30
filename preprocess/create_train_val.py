@@ -16,7 +16,11 @@ df = pd.read_csv(INPUT_CSV)
 print("Total positions:", len(df))
 
 # Split by game_id, NOT by position
+import numpy as np
+
 games = df["game_id"].unique()
+rng = np.random.default_rng(42)
+rng.shuffle(games)
 
 split = int(0.95 * len(games))
 
