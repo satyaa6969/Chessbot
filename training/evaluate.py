@@ -5,7 +5,7 @@ from training.dataset import ChessDataset
 from training.model import ChessPolicyNet
 
 MODEL_PATH = "/kaggle/working/models/policy_net_epoch1.pth"
-VAL_PATH = "/kaggle/input/<YOUR_DATASET>/val.csv"
+VAL_PATH = "/kaggle/input/datasets/satyajeet69/positions-csv/positions.csv"
 
 BATCH_SIZE = 256
 
