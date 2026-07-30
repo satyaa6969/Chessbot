@@ -21,7 +21,8 @@ dataset = ChessDataset("/kaggle/input/datasets/satyajeet69/positions-csv/positio
 loader = DataLoader(
     dataset,
     batch_size=BATCH_SIZE,
-    num_workers=0
+    num_workers=2,
+    pin_memory=True,
 )
 
 
