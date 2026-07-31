@@ -21,6 +21,7 @@ FINAL_MODEL = os.path.join(MODEL_DIR, "policy_net_epoch1.pth")
 BATCH_SIZE = 256
 LEARNING_RATE = 1e-3
 NUM_EPOCHS = 1
+
 CHECKPOINT_INTERVAL = 5000
 LOG_INTERVAL = 1000
 
@@ -44,7 +45,6 @@ loader = DataLoader(
 # ===========================
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 print(f"Using device: {device}")
 
 # ===========================
@@ -60,12 +60,8 @@ optimizer = torch.optim.Adam(
     lr=LEARNING_RATE
 )
 
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-    optimizer,
-    T_max=len(loader) * NUM_EPOCHS
-)
-
-scaler = torch.cuda.amp.GradScaler(enabled=torch.cuda.is_available())
+# Mixed Precision
+scaler = torch.amp.GradScaler('cuda', enabled=torch.cuda.is_available())
 
 start_epoch = 0
 
@@ -79,14 +75,12 @@ if os.path.exists(CHECKPOINT_FILE):
 
     model.load_state_dict(checkpoint["model_state"])
     optimizer.load_state_dict(checkpoint["optimizer_state"])
-    scheduler.load_state_dict(checkpoint["scheduler_state"])
 
     start_epoch = checkpoint["epoch"] + 1
 
     print(f"Resuming from epoch {start_epoch}")
 
 else:
-
     print("No checkpoint found. Starting fresh.")
 
 # ===========================
@@ -100,7 +94,6 @@ training_start = time.time()
 for epoch in range(start_epoch, NUM_EPOCHS):
 
     running_loss = 0.0
-
     epoch_start = time.time()
 
     for batch_idx, (x, y) in enumerate(loader):
@@ -110,19 +103,14 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
         optimizer.zero_grad(set_to_none=True)
 
-        with torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
+        with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
 
             outputs = model(x)
-
             loss = criterion(outputs, y)
 
         scaler.scale(loss).backward()
-
         scaler.step(optimizer)
-
         scaler.update()
-
-        scheduler.step()
 
         running_loss += loss.item()
 
@@ -132,29 +120,23 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
             elapsed = time.time() - epoch_start
 
-            lr = scheduler.get_last_lr()[0]
-
             print(
                 f"Epoch {epoch + 1}/{NUM_EPOCHS} | "
-                f"Batch {batch_idx:,}/{len(loader):,} | "
+                f"Batch {batch_idx:,} | "
                 f"Loss {avg_loss:.4f} | "
-                f"LR {lr:.6f} | "
                 f"Time {elapsed:.1f}s"
             )
 
         if batch_idx % CHECKPOINT_INTERVAL == 0 and batch_idx != 0:
 
-            torch.save({
-
-                "epoch": epoch,
-
-                "model_state": model.state_dict(),
-
-                "optimizer_state": optimizer.state_dict(),
-
-                "scheduler_state": scheduler.state_dict(),
-
-            }, CHECKPOINT_FILE)
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                },
+                CHECKPOINT_FILE,
+            )
 
             print("Checkpoint updated.")
 
@@ -164,7 +146,7 @@ for epoch in range(start_epoch, NUM_EPOCHS):
 
 torch.save(model.state_dict(), FINAL_MODEL)
 
-print(f"Final model saved to:\n{FINAL_MODEL}")
+print(f"\nFinal model saved to:\n{FINAL_MODEL}")
 
 print(
     f"Training completed in "
