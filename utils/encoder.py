@@ -1,7 +1,7 @@
 import chess
 import torch
 
-# Channel mapping
+# Tensor channel mapping
 PIECE_TO_CHANNEL = {
     (chess.PAWN, chess.WHITE): 0,
     (chess.KNIGHT, chess.WHITE): 1,
@@ -21,14 +21,23 @@ PIECE_TO_CHANNEL = {
 
 def fen_to_tensor(fen: str) -> torch.Tensor:
     """
-    Converts a FEN string into a tensor of shape [12, 8, 8]
+    Convert a FEN position into a tensor of shape [12, 8, 8].
+
+    Channels:
+        0-5   : White P, N, B, R, Q, K
+        6-11  : Black P, N, B, R, Q, K
+
+    Each occupied square contains 1.0.
+    Empty squares contain 0.0.
     """
 
     board = chess.Board(fen)
 
     tensor = torch.zeros((12, 8, 8), dtype=torch.float32)
 
-    for square, piece in board.piece_map().items():
+    piece_map = board.piece_map()
+
+    for square, piece in piece_map.items():
 
         channel = PIECE_TO_CHANNEL[(piece.piece_type, piece.color)]
 

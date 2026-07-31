@@ -1,20 +1,18 @@
+from pathlib import Path
 import chess.pgn
 
-PGN_FILE = "../data/raw/elite_games.pgn"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PGN_FILE = PROJECT_ROOT / "data" / "raw" / "elite_games.pgn"
 
 with open(PGN_FILE, "r", encoding="utf-8") as pgn:
     game = chess.pgn.read_game(pgn)
 
     if game is None:
-        print("No games found!")
-        exit()
+        raise SystemExit("No games found!")
 
     print(f"White : {game.headers['White']}")
     print(f"Black : {game.headers['Black']}")
     print(f"Result: {game.headers['Result']}")
-
-    moves = list(game.mainline_moves())
-    print(f"Total moves: {len(moves)}")
 
     board = game.board()
 
@@ -28,6 +26,7 @@ with open(PGN_FILE, "r", encoding="utf-8") as pgn:
         })
         board.push(move)
 
+    print(f"Total moves: {len(examples)}")
     print(f"Extracted {len(examples)} training examples.\n")
 
     for example in examples[:5]:

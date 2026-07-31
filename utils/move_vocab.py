@@ -1,47 +1,56 @@
 import chess
 
-MOVE_TO_ID = {}
-ID_TO_MOVE = {}
-
-move_id = 0
-
-# Normal moves
-for from_square in chess.SQUARES:
-    for to_square in chess.SQUARES:
-        move = chess.Move(from_square, to_square)
-
-        uci = move.uci()
-
-        MOVE_TO_ID[uci] = move_id
-        ID_TO_MOVE[move_id] = uci
-        move_id += 1
-
-# Promotion moves
-promotions = [
+PROMOTION_RANKS = (1, 6)
+PROMOTIONS = (
     chess.QUEEN,
     chess.ROOK,
     chess.BISHOP,
-    chess.KNIGHT
-]
+    chess.KNIGHT,
+)
 
-for from_square in chess.SQUARES:
 
-    rank = chess.square_rank(from_square)
+def build_move_vocab():
+    move_to_id = {}
+    id_to_move = {}
 
-    if rank not in [1, 6]:
-        continue
+    move_id = 0
 
-    for to_square in chess.SQUARES:
+    # Normal moves
+    for from_square in chess.SQUARES:
+        for to_square in chess.SQUARES:
+            uci = chess.Move(from_square, to_square).uci()
 
-        for promo in promotions:
+            move_to_id[uci] = move_id
+            id_to_move[move_id] = uci
+            move_id += 1
 
-            move = chess.Move(from_square, to_square, promotion=promo)
+    # Promotion moves
+    for from_square in chess.SQUARES:
 
-            uci = move.uci()
+        if chess.square_rank(from_square) not in PROMOTION_RANKS:
+            continue
 
-            if uci not in MOVE_TO_ID:
-                MOVE_TO_ID[uci] = move_id
-                ID_TO_MOVE[move_id] = uci
-                move_id += 1
+        for to_square in chess.SQUARES:
+            for promotion in PROMOTIONS:
 
-print(f"Vocabulary size: {len(MOVE_TO_ID)}")
+                uci = chess.Move(
+                    from_square,
+                    to_square,
+                    promotion=promotion
+                ).uci()
+
+                if uci not in move_to_id:
+                    move_to_id[uci] = move_id
+                    id_to_move[move_id] = uci
+                    move_id += 1
+
+    return move_to_id, id_to_move
+
+
+MOVE_TO_ID, ID_TO_MOVE = build_move_vocab()
+
+VOCAB_SIZE = len(MOVE_TO_ID)
+
+
+if __name__ == "__main__":
+    print(f"Vocabulary size: {VOCAB_SIZE}")
