@@ -12,7 +12,7 @@ from training.model import ChessPolicyNet
 # Configuration
 # ===========================
 
-TRAIN_PATH = "/kaggle/input/satyajeet69/training_set/train.csv"
+TRAIN_PATH = "/kaggle/input/datasets/satyajeet69/training_set/train.csv"
 
 MODEL_DIR = "/kaggle/working/models"
 CHECKPOINT_FILE = os.path.join(MODEL_DIR, "latest_checkpoint.pth")
