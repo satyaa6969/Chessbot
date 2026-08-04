@@ -13,9 +13,7 @@ from training.model import ChessPolicyNet
 
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-
-MODEL_PATH = PROJECT_ROOT / "models" / "policy_net_epoch1.pth"
+MODEL_PATH = "/kaggle/working/Chessbot/models/policy_net_epoch1.pth"
 VAL_PATH = "/kaggle/input/datasets/satyajeet69/Validation-Set/val.csv"
 
 BATCH_SIZE = 256
